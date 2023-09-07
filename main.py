@@ -25,7 +25,7 @@ def init_variables():
         exit()
     
     # 0 - EvilChan, 1 - Hinata
-    modelNumber = 0
+    modelNumber = 1
     aidata = AI_Data()
     aidata.name = data["AI_data"][modelNumber]["model_name"]
     aidata.age = data["AI_data"][modelNumber]["model_age"]
@@ -63,7 +63,8 @@ def main():
     init(autoreset=True)
 
     AwwWaifuAI = WaifuAI()
-    print("Enter \"exit\" to stop the conversation")
+    print(Fore.MAGENTA + Style.BRIGHT + "You will speak to " + AwwWaifuAI.data.name)
+    print(Fore.MAGENTA + Style.BRIGHT + "Enter \"exit\" to stop the conversation")
     conversation_flag = True
 
     with AwwWaifuAI.model.chat_session(system_prompt=AwwWaifuAI.data.system_template):
