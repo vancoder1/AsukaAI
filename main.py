@@ -8,7 +8,7 @@ class AI_Data:
     name : str
     age : int
     type : str
-    prompt : str
+    system_template : str
     temperature : float
     max_tokens : int
     top_p : float
@@ -23,12 +23,12 @@ def init_variables():
         exit()
     
     # 0 - EvilChan, 1 - Hinata
-    modelNumber = 0
+    modelNumber = 1
     aidata = AI_Data()
     aidata.name = data["AI_data"][modelNumber]["model_name"]
     aidata.age = data["AI_data"][modelNumber]["model_age"]
     aidata.type = data["AI_data"][modelNumber]["model_type"]
-    aidata.prompt = data["AI_data"][modelNumber]["sysprompt"]
+    aidata.system_template = data["AI_data"][modelNumber]["system_template"]
     aidata.temperature = data["AI_data"][modelNumber]["temperature"]
     aidata.max_tokens = data["AI_data"][modelNumber]["max_tokens"]
     aidata.top_p = data["AI_data"][modelNumber]["top_p"]
@@ -48,6 +48,16 @@ class WaifuAI:
 init(autoreset=True)
 
 AwwWaifuAI = WaifuAI()
-with AwwWaifuAI.model.chat_session():
-    output = AwwWaifuAI.model.generate(prompt="Tell me about yourself", max_tokens=AwwWaifuAI.data.max_tokens)
-print(Fore.CYAN + output)
+print("Enter \"exit\" to stop the conversation")
+conversation_flag = True
+with AwwWaifuAI.model.chat_session(system_prompt=AwwWaifuAI.data.system_template):
+    while conversation_flag:
+        tokens = []
+        your_prompt = str(input(Fore.CYAN + "YOU: "))
+        if (str.lower(your_prompt) == "exit"):
+            conversation_flag = False
+            break
+        for token in AwwWaifuAI.model.generate(prompt=your_prompt, max_tokens=AwwWaifuAI.data.max_tokens, streaming=True):
+            tokens.append(token)
+            print(Fore.LIGHTRED_EX + str(token), end='')
+        print()
