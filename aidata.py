@@ -35,6 +35,7 @@ def init_variables(modelNum):
     aidata.top_p = data["AI_data"][modelNumber]["top_p"]
     aidata.repeat_penalty = data["AI_data"][modelNumber]["repeat_penalty"]
     return aidata
+
 class WaifuAI:
     data : AI_Data
     model : GPT4All

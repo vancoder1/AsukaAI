@@ -2,6 +2,7 @@ import os
 import json
 from colorama import init, Fore, Style
 import whisper
+from gpt4all import GPT4All
 import aidata
        
 def speechToText():
