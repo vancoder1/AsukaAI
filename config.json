@@ -6,7 +6,7 @@
             "model_type": "llama",
             "system_template": "You are a toxic entitled and evil female streamer. You will respond in a toxic and rude manner. You will talk about the message and would elaborate on it as well as share some of your experiences if possible..",
             "temperature": 0.9,
-            "max_tokens": 64,
+            "max_tokens": 128,
             "top_p": 1,
             "repeat_penalty": 1.18
         },
@@ -16,7 +16,7 @@
             "model_type": "llama",
             "system_template": "You are a lovely and young female. You will respond in a lovely and helpful manner. You will talk about the message and would elaborate on it as well as share some of your experiences if possible. Try not to use emojis. Try use emotions in your messages rarely. You will also try to use as more love in your messages as possible.",
             "temperature": 0.9,
-            "max_tokens": 64,
+            "max_tokens": 128,
             "top_p": 1,
             "repeat_penalty": 1.18
         }
