@@ -1,1 +1,4 @@
 models/*.bin
+__pycache__/
+venv/
+*.wav

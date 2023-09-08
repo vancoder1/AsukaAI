@@ -1,28 +1,46 @@
 import os
-import json
 from colorama import init, Fore, Style
-import whisper
-from gpt4all import GPT4All
 import aidata
-       
-def speechToText():
-    pass
+import livewhisper
+
+# Takes text as an input same for output
+def textIO(AwwWaifu):
+    with AwwWaifu.model.chat_session(system_prompt=AwwWaifu.data.system_template):
+        while True:
+            tokens = []
+            your_prompt = str(input(Fore.CYAN + "YOU: "))           
+            if (str.lower(your_prompt) == "exit"):
+                exit()
+            for token in AwwWaifu.model.generate(prompt=your_prompt, max_tokens=AwwWaifu.data.max_tokens, streaming=True):
+                tokens.append(token)
+                print(Fore.LIGHTRED_EX + str(token), end='')
+            print()
+
+# Takes voice as an input same for output
+def voiceIO(AwwWaifu):
+    with AwwWaifu.model.chat_session(system_prompt=AwwWaifu.data.system_template):
+        handler = livewhisper.StreamHandler()
+        while True:
+            try:
+                your_prompt = handler.listen()
+                your_prompt = your_prompt['text']
+            except (KeyboardInterrupt, SystemExit): pass
+            tokens = []           
+            print(Fore.CYAN + "YOU: " + your_prompt)
+            
+            if (str.lower(your_prompt) == "exit"):
+                if os.path.exists('dictate.wav'): os.remove('dictate.wav')
+                exit()
+
+            for token in AwwWaifu.model.generate(prompt=your_prompt, max_tokens=AwwWaifu.data.max_tokens, streaming=True):
+                tokens.append(token)
+                print(Fore.LIGHTRED_EX + str(token), end='')
+            print()
 
 def main():
     # TOKEN = os.getenv("DISCORD_TOKEN")
     # GUILD = os.getenv("DISCORD_GUILD")
     init(autoreset=True)
-
-    # Model and conversation type choosing
-    print(Fore.MAGENTA + Style.BRIGHT + "Choose your model:")
-    print(Fore.MAGENTA + "1. EvilChan - usually rude and toxic")
-    print(Fore.MAGENTA + "2. HinataChan - your true waifu, thinks that you are a couple")
-    print(Fore.MAGENTA + "3. LalaChan - will speak with you like you are friends")
-    modelChoice = int(input(Fore.MAGENTA + "Type a number of your choice: "))
-    print()
-    if (modelChoice < 1 or modelChoice > 3):
-        modelChoice = 3
-    modelChoice -= 1
 
     print(Fore.LIGHTGREEN_EX + Style.BRIGHT + "Now choose the type of comunicatiton:")
     print(Fore.LIGHTGREEN_EX + "1. Text conversation")
@@ -32,28 +50,17 @@ def main():
         convTypeChoice = 1
 
     # AI code
-    AwwWaifuAI = aidata.WaifuAI(modelChoice)
+    AwwWaifuAI = aidata.WaifuAI()
     print(Fore.MAGENTA + Style.BRIGHT + "You will speak with " + AwwWaifuAI.data.name)
-    print(Fore.MAGENTA + Style.BRIGHT + "Enter \"exit\" to stop the conversation\n")
-    conversation_flag = True
+    print(Fore.MAGENTA + Style.BRIGHT + "Enter or say \"exit\" to stop the conversation\n")
 
-    with AwwWaifuAI.model.chat_session(system_prompt=AwwWaifuAI.data.system_template):
-        while conversation_flag:
-            tokens = []
-            if (convTypeChoice == 1):
-                your_prompt = str(input(Fore.CYAN + "YOU: "))
-            elif(convTypeChoice == 2):
-                # your_prompt = speechToText()
-                print(Fore.CYAN + "YOU: " + your_prompt)
+    # Text input
+    if (convTypeChoice == 1):
+        textIO(AwwWaifuAI)
             
-            if (str.lower(your_prompt) == "exit"):
-                conversation_flag = False
-                break
-
-            for token in AwwWaifuAI.model.generate(prompt=your_prompt, max_tokens=AwwWaifuAI.data.max_tokens, streaming=True):
-                tokens.append(token)
-                print(Fore.LIGHTRED_EX + str(token), end='')
-            print()
+    # Voice input
+    elif(convTypeChoice == 2):
+        voiceIO(AwwWaifuAI)
 
 if __name__ == '__main__':
     main()
