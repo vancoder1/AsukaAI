@@ -1,4 +1,6 @@
 models/*.bin
+models/*.gguf
 __pycache__/
 venv/
 *.wav
+*.mp3

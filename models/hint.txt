@@ -1,1 +1,0 @@
-put your model in here and name it "llama-2-7b-chat.ggmlv3.q4_0" and it should have .bin format

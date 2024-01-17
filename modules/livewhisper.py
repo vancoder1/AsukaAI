@@ -10,9 +10,11 @@ English = True      # Use English-only model?
 Translate = False   # Translate non-English to English?
 SampleRate = 16000  # Stream device recording frequency
 BlockSize = 80      # Block size in milliseconds
-Threshold = 0.09    # Minimum volume threshold to activate listening
-Vocals = [22, 1050] # Frequency range to detect sounds that could be speech
+Threshold = 0.05    # Minimum volume threshold to activate listening
+Vocals = [22, 1300] # Frequency range to detect sounds that could be speech
 EndBlocks = 30      # Number of blocks to wait before sending to Whisper
+
+FileLocation = 'cache\\dictate.wav'
 
 class StreamHandler:
     def __init__(self, assist=None):
@@ -49,7 +51,7 @@ class StreamHandler:
                 self.buffer = np.concatenate((self.buffer, indata))
             elif self.padding < 1 < self.buffer.shape[0] > SampleRate: # if enough silence has passed, write to file.
                 self.fileready = True
-                write('dictate.wav', SampleRate, self.buffer) # I'd rather send data to Whisper directly..
+                write(FileLocation, SampleRate, self.buffer) # I'd rather send data to Whisper directly..
                 self.buffer = np.zeros((0,1))
             elif self.padding < 1 < self.buffer.shape[0] < SampleRate: # if recording not long enough, reset buffer.
                 self.buffer = np.zeros((0,1))
@@ -60,7 +62,7 @@ class StreamHandler:
     def process(self):
         if self.fileready:
             print("\n\033[90mTranscribing..\033[0m")
-            result = self.model.transcribe('dictate.wav',fp16=False,language='en' if English else '',task='translate' if Translate else 'transcribe')
+            result = self.model.transcribe(FileLocation,fp16=False,language='en' if English else '',task='translate' if Translate else 'transcribe')
             if self.asst.analyze != None: self.asst.analyze(result['text'])
             self.fileready = False
             self.running = False
