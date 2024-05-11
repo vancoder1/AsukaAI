@@ -5,6 +5,7 @@ import sounddevice as sd
 from scipy.io.wavfile import write
 
 # by Nik Stromberg - nikorasu85@gmail.com - MIT 2022 - copilot
+# their project: https://github.com/Nikorasu/LiveWhisper 
 Model = 'base'      # Whisper model size (tiny, base, small, medium, large)
 English = True      # Use English-only model?
 Translate = False   # Translate non-English to English?
