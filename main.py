@@ -1,59 +1,73 @@
-import os
-from playsound import playsound
+import ollama
+from pygame import mixer
+import subprocess
 import aidata
-import modules.livewhisper as livewhisper
+import modules.livewhisper as lw
 import modules.silero_tts as silero
+
 
 # Takes text as an input same for output
 def textIO(AwwWaifu):
-    with AwwWaifu.model.chat_session(system_prompt=AwwWaifu.data.system_template):
-        while True:
-            tokens = []
-            your_prompt = str(input('YOU: '))           
-            if (str.lower(your_prompt) == 'exit'):
-                exit()
-            print('AI: ', end = '')
-            for token in AwwWaifu.model.generate(prompt=your_prompt, max_tokens=AwwWaifu.data.max_tokens, streaming=True):
-                tokens.append(token)
-                print(str(token), end='')          
-            print()
+    while True:
+        your_prompt = str(input('YOU: '))
+        print('AI: ', end='')
+        AwwWaifu.stream = ollama.chat(
+            model=AwwWaifu.model_name,
+            messages=[
+                {
+                    'role': 'user', 'content': your_prompt
+                }
+            ],
+            stream=True,
+        )
+        for chunk in AwwWaifu.stream:
+            print(chunk['message']['content'], end='', flush=True)      
+        print()
+
 
 # Takes voice as an input same for output
 def voiceIO(AwwWaifu):
-    with AwwWaifu.model.chat_session(system_prompt=AwwWaifu.data.system_template):
-        myTTS = silero.TTS()
-        handler = livewhisper.StreamHandler()
-        while True:
-            try:
-                your_prompt = handler.listen()
-                your_prompt = your_prompt['text']
-            except (KeyboardInterrupt, SystemExit): pass
-            tokens = []           
-            print('YOU: ' + your_prompt)
-            
-            if (str.lower(your_prompt) == 'exit'):
-                if os.path.exists('cache\\dictate.wav'): os.remove('\\cache\\dictate.wav')
-                exit()
-            print('AI: ', end='')
-            for token in AwwWaifu.model.generate(prompt=your_prompt, max_tokens=AwwWaifu.data.max_tokens, streaming=True):
-                tokens.append(token)
-                print(str(token), end='')
-            print()
-            myTTS.process_audio(str(''.join(tokens)))
-            playsound('cache\\ai_response_tts.mp3')
-            print()
+    myTTS = silero.TTS()
+    handler = lw.StreamHandler()
+    mixer.init()
+    while True:
+        try:
+            your_prompt = handler.listen()
+            your_prompt = your_prompt['text']
+        except (KeyboardInterrupt, SystemExit): pass          
+        print('YOU: ' + your_prompt)
+        print('AI: ', end='')
+        AwwWaifu.stream = ollama.chat(
+            model=AwwWaifu.model_name,
+            messages=[
+                {
+                    'role': 'user', 'content': your_prompt
+                }
+            ],
+            stream=True,
+        )
+        AI_answer = ''
+        for chunk in AwwWaifu.stream:
+            AI_answer += chunk['message']['content']
+            print(chunk['message']['content'], end='', flush=True)
+        print()
+        mixer.music.stop()
+        mixer.music.unload()
+        myTTS.process_audio(AI_answer)
+        mixer.music.load(myTTS.output_file)
+        mixer.music.play()
+        print()
+
 
 if __name__ == '__main__':
+    # this command boots up ollama
+    subprocess.run("ollama list")
     conversationType = 2
-
-    # AI code
     AwwWaifuAI = aidata.WaifuAI()
-    print('You will speak with ' + AwwWaifuAI.data.name)
-    print('Enter or say "exit" to stop the conversation\n')
 
     # Text
-    if (conversationType == 1):
+    if conversationType == 1:
         textIO(AwwWaifuAI)
     # Voice
-    elif(conversationType == 2):
+    elif conversationType == 2:
         voiceIO(AwwWaifuAI)

@@ -1,6 +1,5 @@
-models/*.bin
-models/*.gguf
 __pycache__/
+modules/__pycache__
 venv/
 .idea/
 *.wav
