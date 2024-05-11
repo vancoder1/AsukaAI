@@ -2,5 +2,6 @@ models/*.bin
 models/*.gguf
 __pycache__/
 venv/
+.idea/
 *.wav
 *.mp3
