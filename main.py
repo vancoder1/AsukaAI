@@ -1,73 +1,73 @@
 import ollama
-from pygame import mixer
-import subprocess
 import aidata
-import modules.livewhisper as lw
-import modules.silero_tts as silero
+from typing import Any
+from pygame import mixer
+import modules.coqui_tts as coqui_tts
+import modules.fasterwhisper_stt as fw
+import modules.logging_config as lf
 
+logger = lf.configure_logger(__name__)
 
-# Takes text as an input same for output
-def textIO(AwwWaifu):
-    while True:
-        your_prompt = str(input('YOU: '))
-        print('AI: ', end='')
-        AwwWaifu.stream = ollama.chat(
-            model=AwwWaifu.model_name,
-            messages=[
-                {
-                    'role': 'user', 'content': your_prompt
-                }
-            ],
-            stream=True,
-        )
-        for chunk in AwwWaifu.stream:
-            print(chunk['message']['content'], end='', flush=True)      
-        print()
-
-
-# Takes voice as an input same for output
-def voiceIO(AwwWaifu):
-    myTTS = silero.TTS()
-    handler = lw.StreamHandler()
+def voiceIO(AsukaAI):
     mixer.init()
+    print('Initializing xtts...')
+    tts = coqui_tts.Coqui_TTS()
+    print('Initializing fasterwhisper...')
+    whisper = fw.FasterWhisper()
+    print('Initializing push-to-talk recorder...')
+    recorder = fw.PushToTalkRecorder()
+    recorder.start()
+
     while True:
+        print(f'Press {recorder.key} to start recording and release to stop.')
+        recorder.wait_for_recording()
         try:
-            your_prompt = handler.listen()
-            your_prompt = your_prompt['text']
-        except (KeyboardInterrupt, SystemExit): pass          
-        print('YOU: ' + your_prompt)
-        print('AI: ', end='')
-        AwwWaifu.stream = ollama.chat(
-            model=AwwWaifu.model_name,
-            messages=[
-                {
-                    'role': 'user', 'content': your_prompt
-                }
-            ],
-            stream=True,
-        )
-        AI_answer = ''
-        for chunk in AwwWaifu.stream:
-            AI_answer += chunk['message']['content']
-            print(chunk['message']['content'], end='', flush=True)
-        print()
+            your_prompt = whisper.transcribe()
+        except (SystemExit):
+            logger.info('Exiting...')
+            break
+        except Exception as e:
+            logger.error(f"Error during transcription: {e}")
+            continue
+        
+        print(f'YOU: {your_prompt}')
+
+        try:
+            AsukaAI.stream = ollama.chat(
+                model=AsukaAI.model_name,
+                messages=[
+                    {
+                        'role': 'user', 'content': your_prompt
+                    }
+                ],
+                stream=True,
+            )
+            print('AI: ', end='')
+            AI_answer = ''
+            for chunk in AsukaAI.stream:
+                AI_answer += chunk['message']['content']
+                print(chunk['message']['content'], end='', flush=True)
+            print(end='\n')
+        except Exception as e:
+            logger.error(f"Error during AI response: {e}")
+            continue
+        
         mixer.music.stop()
         mixer.music.unload()
-        myTTS.process_audio(AI_answer)
-        mixer.music.load(myTTS.output_file)
-        mixer.music.play()
-        print()
+        
+        try:
+            tts.process_audio(AI_answer)
+            mixer.music.load(tts.output_file)
+            mixer.music.play()
+        except Exception as e:
+            logger.error(f"Error during TTS processing: {e}")
 
 
 if __name__ == '__main__':
-    # this command boots up ollama
-    subprocess.run("ollama list")
-    conversationType = 2
-    AwwWaifuAI = aidata.WaifuAI()
-
-    # Text
-    if conversationType == 1:
-        textIO(AwwWaifuAI)
-    # Voice
-    elif conversationType == 2:
-        voiceIO(AwwWaifuAI)
+    try:
+        # This command boots up ollama
+        # subprocess.run("ollama list")
+        AsukaAI = aidata.AI()
+        voiceIO(AsukaAI)
+    except Exception as e:
+        logger.error(f"Fatal error: {e}")

@@ -1,25 +1,36 @@
 import ollama
 import httpcore
 import httpx
+from typing import Optional
+import modules.logging_config as lf
 
-class WaifuAI:
-    def __init__(self):
+logger = lf.configure_logger(__name__)
+
+class AI:
+    def __init__(self, model_name: str = 'Asuka'):
+        self.model_name = model_name
+        self.model_name = model_name
+        self.stream: Optional[ollama.Stream] = None
+        self._initialize_model()
+
+    def _initialize_model(self):
         try:
-            self.stream = ollama.generate(
-                model=self.model_name
-            )
-
+            self.stream = ollama.generate(model=self.model_name)
         except ollama.ResponseError as re:
-            print('Error:', re.error)
+            logger.error(f'Error: {re.error}')
             if re.status_code == 404:
-                print("Try pulling " + self.model_name + "...")
-            try:
-                ollama.pull(self.model_name)
-            except ollama.ResponseError as ep:
-                print("Error:", ep.error)
-            else:
-                print(self.model_name + " is successfully installed!")
+                logger.info(f'Model {self.model_name} not found, attempting to pull it...')
+                self._pull_model()
         except (httpcore.ConnectError, httpx.ConnectError) as ce:
-            print('Error:', ce)
-            print('It seems that ollama is not running on your device, try starting it up first!')
-            exit()
+            logger.error(f'Connection Error: {ce}')
+            logger.error('It seems that ollama is not running on your device. Please start it up first!')
+            exit(1)
+
+    def _pull_model(self):
+        try:
+            ollama.pull(self.model_name)
+        except ollama.ResponseError as ep:
+            logger.error(f'Error pulling model: {ep.error}')
+            exit(1)
+        else:
+            logger.info(f'Model {self.model_name} is successfully installed!')
