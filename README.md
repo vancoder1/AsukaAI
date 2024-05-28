@@ -34,6 +34,8 @@ AsukaAI is a fully offline, local AI solution designed to ensure privacy while p
 
 2. **CUDA Toolkit 12.1** (if using GPU): Ensure you have the CUDA toolkit installed to leverage GPU acceleration. Download it from [NVIDIA's website](https://developer.nvidia.com/cuda-toolkit).
 
+3. **Ollama**: Ensure Ollama is installed on your system. Download it here [Ollama](https://ollama.com/).
+
 ### Steps
 
 1. **Clone the Repository**:
