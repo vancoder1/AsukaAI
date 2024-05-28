@@ -12,6 +12,8 @@ IF NOT EXIST %VENV% (
     call python -m venv %VENV%
 )
 
+call .\venv\Scripts\activate.bat
+
 REM Install required packages
 IF EXIST requirements.txt (
     echo Installing required packages...

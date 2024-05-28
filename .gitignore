@@ -1,8 +1,18 @@
-__pycache__/
+# Pycache
+__pycache__/*
 modules/__pycache__
-.idea/
-.vscode/
-venv/
+*.pyc
 
+# IDE directories
+.idea/*
+.vscode/*
+
+# Virtual environment
+venv/*
+
+# Cache
 cache/*
-!cache/.gitkeep 
+!cache/.gitkeep
+
+# Logs
+*.log

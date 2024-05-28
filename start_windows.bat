@@ -3,7 +3,7 @@
 REM Define paths
 set "VENV=venv"
 
-call python -m venv %VENV%
+call .\venv\Scripts\activate.bat
 
 call python main.py
 
