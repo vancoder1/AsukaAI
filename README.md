@@ -1,6 +1,6 @@
 # AsukaAI
 
-AsukaAI is a fully offline, local AI solution designed to ensure privacy while providing robust functionalities. It integrates speech-to-text, text generation, and text-to-speech capabilities using the following technologies:
+AsukaAI is your personal offline AI companion, ensuring privacy while offering powerful features. This local AI waifu seamlessly integrates speech-to-text, text generation, and text-to-speech functionalities:
 - **faster_whisper** for speech-to-text
 - **ollama** with Llama3 under the hood for text generation
 - **coqui_tts** for text-to-speech
@@ -40,7 +40,7 @@ AsukaAI is a fully offline, local AI solution designed to ensure privacy while p
 
 3. **Ollama**: Ensure Ollama is installed on your system. Download it here [Ollama](https://ollama.com/).
 
-4. **Miniconda**: Ensure Miniconda is installed. Download it here [Miniconda](https://docs.anaconda.com/free/miniconda/index.html)
+4. **Miniconda**: Ensure Miniconda is installed. Download it here [Miniconda](https://docs.anaconda.com/free/miniconda/index.html).
 
 ### Steps
 
