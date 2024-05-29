@@ -5,36 +5,42 @@ AsukaAI is a fully offline, local AI solution designed to ensure privacy while p
 - **ollama** with Llama3 under the hood for text generation
 - **coqui_tts** for text-to-speech
 
-## Features
+## 🌟 Features
 
-- **Privacy**: All processing is done locally on your machine, ensuring your data never leaves your device.
-- **Customizability**: Create and integrate your own models according to your needs.
-- **Modular Design**: Each component (STT, text generation, TTS) can be independently configured and customized.
-- **User-friendly**: Easy to set up and use with straightforward installation and configuration.
+- **🔒 Privacy**: All processing is done locally on your machine, ensuring your data never leaves your device.
+- **🛠️ Customizability**: Create and integrate your own models according to your needs.
+- **🔗 Modular Design**: Each component (STT, text generation, TTS) can be independently configured and customized.
+- **👥 User-friendly**: Easy to set up and use with straightforward installation and configuration.
 
-## System Requirements
+## 🖥️ System Requirements
 
 ### Minimum Requirements:
-- **VRAM**: 8GB
+- **VRAM**: 0GB (GPU not required)
 - **RAM**: 16GB
 - **Free Disk Space**: 10GB
 - **OS**: Windows
 
 ### Recommended Requirements:
 - **VRAM**: 12GB
-- **RAM**: 32GB
+- **RAM**: 16GB
 - **Free Disk Space**: 10GB
 - **OS**: Windows
 
-## Installation
+#### Notes:
+- **GPU**: Nvidia GPU (CPU if Nvidia GPU is not available).
+- **AMD GPUs are not supported yet**.
+
+## 🚀 Installation
 
 ### Prerequisites
 
 1. **Python 3.11**: Make sure Python is installed on your system. You can download it from [python.org](https://www.python.org/).
 
-2. **CUDA Toolkit 12.1** (if using GPU): Ensure you have the CUDA toolkit installed to leverage GPU acceleration. Download it from [NVIDIA's website](https://developer.nvidia.com/cuda-toolkit).
+2. **CUDA Toolkit** (if using GPU): Ensure you have the CUDA toolkit installed to leverage GPU acceleration. Download it from [NVIDIA's website](https://developer.nvidia.com/cuda-toolkit).
 
 3. **Ollama**: Ensure Ollama is installed on your system. Download it here [Ollama](https://ollama.com/).
+
+4. **Miniconda**: Ensure Miniconda is installed. Download it here [Miniconda](https://docs.anaconda.com/free/miniconda/index.html)
 
 ### Steps
 
@@ -51,14 +57,14 @@ AsukaAI is a fully offline, local AI solution designed to ensure privacy while p
 
 3. **Wait for the installation to complete**.
 
-## Usage
+## 📖 Usage
 
 1. **Start the Application**:
     ```sh
     .\start_windows.bat
     ```
 
-2. **Using Speech-to-Text**:
+2. **Speech-to-Text**:
     - Push the default F8 button (which can be rebound within the program) to start recording.
     - Wait for faster_whisper to process and extract text from your recording.
 
@@ -75,20 +81,20 @@ AsukaAI is a fully offline, local AI solution designed to ensure privacy while p
     - Convert generated text to speech using the `XTTS_v2` model in `coqui_tts`.
     - To change the voice, place your desired WAV audio file (approximately 15 seconds, clear voice, no background noise) into the `xtts_voices/` directory and name the file `input.wav`.
 
-## Contributing
+## 🤝 Contributing
 
 Contributions are welcome! If you have any ideas, suggestions, or bug reports, feel free to open an issue or submit a pull request.
 
-## License
+## 📜 License
 
 This project is licensed under the [Apache License 2.0](LICENSE).
 
-## Acknowledgements
+## 🙏 Acknowledgements
 
 - [faster_whisper](https://github.com/guillaumekln/faster-whisper)
 - [ollama](https://github.com/ollama/ollama)
 - [coqui_tts](https://github.com/coqui-ai/TTS)
 
-## Contact
+## 📬 Contact
 
 For any questions or feedback, please open an issue on this repository or reach out to `ivanzaporozhets25@gmail.com`.
