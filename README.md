@@ -7,10 +7,10 @@ AsukaAI is a fully offline, local AI solution designed to ensure privacy while p
 
 ## 🌟 Features
 
-- **🔒 Privacy**: All processing is done locally on your machine, ensuring your data never leaves your device.
-- **🛠️ Customizability**: Create and integrate your own models according to your needs.
-- **🔗 Modular Design**: Each component (STT, text generation, TTS) can be independently configured and customized.
-- **👥 User-friendly**: Easy to set up and use with straightforward installation and configuration.
+- **Privacy**: All processing is done locally on your machine, ensuring your data never leaves your device.
+- **Customizability**: Create and integrate your own models according to your needs.
+- **Modular Design**: Each component (STT, text generation, TTS) can be independently configured and customized.
+- **User-friendly**: Easy to set up and use with straightforward installation and configuration.
 
 ## 🖥️ System Requirements
 
