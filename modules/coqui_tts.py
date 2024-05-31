@@ -7,7 +7,7 @@ logger = lf.configure_logger(__name__)
 class Coqui_TTS:
     def __init__(self, 
                  language: str = 'en', 
-                 input_file: str = r'xtts_voices\\input.wav', 
+                 input_file: str = r'datasets\\xtts_voice\\input.wav', 
                  output_file: str = r'cache\\ai_response_tts.wav'):
         self.language = language
         self.input_file = input_file
