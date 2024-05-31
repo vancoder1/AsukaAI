@@ -1,6 +1,5 @@
 import ollama
 import ai_model
-from typing import Any
 from pygame import mixer
 import modules.coqui_tts as coqui_tts
 import modules.fasterwhisper_stt as fw
@@ -11,7 +10,7 @@ logger = lf.configure_logger(__name__)
 def voiceIO(AsukaAI):
     mixer.init()
     print('Initializing xtts...')
-    tts = coqui_tts.Coqui_TTS()
+    tts = coqui_tts.CoquiTTS()
     print('Initializing fasterwhisper...')
     whisper = fw.FasterWhisper()
     print('Initializing push-to-talk recorder...')
@@ -65,8 +64,6 @@ def voiceIO(AsukaAI):
 
 if __name__ == '__main__':
     try:
-        # This command boots up ollama
-        # subprocess.run("ollama list")
         AsukaAI = ai_model.AIModel()
         voiceIO(AsukaAI)
     except Exception as e:

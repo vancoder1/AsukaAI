@@ -4,7 +4,7 @@ import modules.logging_config as lf
 
 logger = lf.configure_logger(__name__)
 
-class Coqui_TTS:
+class CoquiTTS:
     def __init__(self, 
                  language: str = 'en', 
                  input_file: str = r'datasets\\xtts_voice\\input.wav', 

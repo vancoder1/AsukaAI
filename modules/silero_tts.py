@@ -4,7 +4,7 @@ import modules.logging_config as lf
 
 logger = lf.configure_logger(__name__)
 
-class Silero_TTS:
+class SileroTTS:
     def __init__(self, 
                  language: str = 'en', 
                  model_id: str = 'v3_en', 
