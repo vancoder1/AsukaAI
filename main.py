@@ -1,5 +1,5 @@
 import ollama
-import aidata
+import ai_model
 from typing import Any
 from pygame import mixer
 import modules.coqui_tts as coqui_tts
@@ -67,7 +67,7 @@ if __name__ == '__main__':
     try:
         # This command boots up ollama
         # subprocess.run("ollama list")
-        AsukaAI = aidata.AI()
+        AsukaAI = ai_model.AIModel()
         voiceIO(AsukaAI)
     except Exception as e:
         logger.error(f"Fatal error: {e}")

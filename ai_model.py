@@ -6,7 +6,7 @@ import modules.logging_config as lf
 
 logger = lf.configure_logger(__name__)
 
-class AI:
+class AIModel:
     def __init__(self, model_name: str = 'Asuka'):
         self.model_name = model_name
         self.model_name = model_name
