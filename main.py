@@ -1,8 +1,9 @@
 import ollama
 import ai_model
 from pygame import mixer
-import modules.coqui_tts as coqui_tts
+import modules.pushtotalk_recorder as ptt
 import modules.fasterwhisper_stt as fw
+import modules.coqui_tts as coqui_tts
 import modules.logging_config as lf
 
 logger = lf.configure_logger(__name__)
@@ -10,11 +11,11 @@ logger = lf.configure_logger(__name__)
 def voiceIO(AsukaAI):
     mixer.init()
     print('Initializing xtts...')
-    tts = coqui_tts.CoquiTTS()
+    tts_engine = coqui_tts.CoquiTTS()
     print('Initializing fasterwhisper...')
     whisper = fw.FasterWhisper()
     print('Initializing push-to-talk recorder...')
-    recorder = fw.PushToTalkRecorder()
+    recorder = ptt.PushToTalkRecorder()
     recorder.start()
 
     while True:
@@ -55,8 +56,8 @@ def voiceIO(AsukaAI):
         mixer.music.unload()
         
         try:
-            tts.process_audio(AI_answer)
-            mixer.music.load(tts.output_file)
+            tts_engine.process_audio(AI_answer)
+            mixer.music.load(tts_engine.output_file)
             mixer.music.play()
         except Exception as e:
             logger.error(f"Error during TTS processing: {e}")

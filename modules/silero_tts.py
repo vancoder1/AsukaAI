@@ -1,16 +1,25 @@
 import torch
 import torchaudio
 import modules.logging_config as lf
+import modules.json_handler as jh
 
 logger = lf.configure_logger(__name__)
+json_handler = jh.JsonHandler('config.json')
+
+# SileroTTS settings
+OUTPUT_FILE = json_handler.get_setting('tts.general_settings.output_file')
+SAMPLE_RATE = json_handler.get_setting('tts.general_settings.sample_rate')
+LANGUAGE = json_handler.get_setting('tts.engines.silero.language')
+MODEL_ID = json_handler.get_setting('tts.engines.silero.model_id')
+SPEAKER = json_handler.get_setting('tts.engines.silero.speaker')
 
 class SileroTTS:
     def __init__(self, 
-                 language: str = 'en', 
-                 model_id: str = 'v3_en', 
-                 speaker: str = 'en_107', 
-                 sample_rate: int = 48000, 
-                 output_file: str = r'cache\\ai_response_tts.mp3'):
+                 language: str = LANGUAGE, 
+                 model_id: str = MODEL_ID, 
+                 speaker: str = SPEAKER, 
+                 sample_rate: int = SAMPLE_RATE, 
+                 output_file: str = OUTPUT_FILE):
         self.language = language
         self.model_id = model_id
         self.speaker = speaker
@@ -30,6 +39,6 @@ class SileroTTS:
             torchaudio.save(self.output_file,
                     audio.unsqueeze(0),
                     sample_rate=self.sample_rate,
-                    format='mp3')
+                    format='wav')
         except Exception as e:
             logger.error(f"An error occurred while processing audio: {e}")

@@ -162,4 +162,3 @@ cython_debug/
 
 # Cache
 cache/*
-!cache/.gitkeep

@@ -1,4 +1,6 @@
+import os
 import logging
+import datetime as dt
 
 class CustomFormatter(logging.Formatter):
     grey = '\x1b[38;21m'
@@ -19,13 +21,21 @@ class CustomFormatter(logging.Formatter):
             logging.CRITICAL: self.bold_red + self.fmt + self.reset
         }
 
-    def format(self, record):
+    def format(self, record) -> str:
         log_fmt = self.FORMATS.get(record.levelno)
-        formatter = logging.Formatter(log_fmt)
+        formatter = logging.Formatter(log_fmt, datefmt='%Y-%m-%d %H:%M:%S')
         return formatter.format(record)
-    
-def configure_logger(name: str) -> logging.Logger:
-    fmt = '%(asctime)s | %(levelname)s | %(message)s'
+
+
+def configure_logger(name, log_dir = 'logs') -> logging.Logger:
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir, exist_ok=True)
+    current_time = dt.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    log_filename = f'{log_dir}/log_{current_time}.log'
+    file_fmt = '%(asctime)s | %(levelname)s | %(filename)s:%(lineno)d %(message)s'
+    logging.basicConfig(filename=log_filename, filemode='w', format=file_fmt)
+
+    fmt = '%(message)s'
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
     handler = logging.StreamHandler()

@@ -1,7 +1,6 @@
 import ollama
 import httpcore
 import httpx
-from typing import Optional
 import modules.logging_config as lf
 
 logger = lf.configure_logger(__name__)
@@ -9,8 +8,7 @@ logger = lf.configure_logger(__name__)
 class AIModel:
     def __init__(self, model_name: str = 'Asuka'):
         self.model_name = model_name
-        self.model_name = model_name
-        self.stream: Optional[ollama.Stream] = None
+        self.stream = None
         self._initialize_model()
 
     def _initialize_model(self):
