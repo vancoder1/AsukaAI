@@ -1,9 +1,9 @@
 # AsukaAI
 
 AsukaAI is your personal offline AI companion, ensuring privacy while offering powerful features. This local AI waifu seamlessly integrates speech-to-text, text generation, and text-to-speech functionalities:
-- **faster_whisper** for speech-to-text
-- **ollama** with Llama3 under the hood for text generation
-- **coqui_tts** for text-to-speech
+- **RealtimeSTT** with faster_whisper under the hood for speech-to-text
+- **Ollama** with Llama3 under the hood for text generation
+- **RealtimeTTS** with CoquiTTS under the hood for text-to-speech
 
 ## 🌟 Features
 
@@ -11,6 +11,7 @@ AsukaAI is your personal offline AI companion, ensuring privacy while offering p
 - **Customizability**: Create and integrate your own models according to your needs.
 - **Modular Design**: Each component (STT, text generation, TTS) can be independently configured and customized.
 - **User-friendly**: Easy to set up and use with straightforward installation and configuration.
+- **Real-time processing**: Speech-to-text and text-to-speech are performed in real-time, enabling almost seamless interaction with AI.
 
 ## 🖥️ System Requirements
 
@@ -18,17 +19,16 @@ AsukaAI is your personal offline AI companion, ensuring privacy while offering p
 - **VRAM**: 0GB (GPU not required)
 - **RAM**: 16GB
 - **Free Disk Space**: 10GB
-- **OS**: Windows
 
 ### Recommended Requirements:
 - **VRAM**: 12GB
 - **RAM**: 16GB
 - **Free Disk Space**: 10GB
-- **OS**: Windows
 
 #### Notes:
-- **GPU**: Nvidia GPU (CPU if Nvidia GPU is not available).
-- **AMD GPUs are not supported yet**.
+- **GPU**: Nvidia GPU recommended; CPU can be used if Nvidia GPU is not available.
+- **AMD GPUs** Not supported yet.
+- **OS**: Windows is preferable; Linux and macOS have not been tested yet.
 
 ## 🚀 Installation
 
@@ -40,7 +40,7 @@ AsukaAI is your personal offline AI companion, ensuring privacy while offering p
 
 3. **Ollama**: Ensure Ollama is installed on your system. Download it here [Ollama](https://ollama.com/).
 
-4. **Miniconda**: Ensure Miniconda is installed. Download it here [Miniconda](https://docs.anaconda.com/free/miniconda/index.html).
+4. **Miniconda**: Ensure Miniconda is installed. Don't forget to check `Add to PATH` during installation. Download it here [Miniconda](https://docs.anaconda.com/free/miniconda/index.html).
 
 ### Steps
 
@@ -65,7 +65,7 @@ AsukaAI is your personal offline AI companion, ensuring privacy while offering p
     ```
 
 2. **Speech-to-Text**:
-    - Push the default F8 button (which can be rebound within the program) to start recording.
+    - Just start speaking to start transcription.
     - Wait for faster_whisper to process and extract text from your recording.
 
 3. **Text Generation**:
@@ -78,8 +78,27 @@ AsukaAI is your personal offline AI companion, ensuring privacy while offering p
       ```
 
 4. **Text-to-Speech**:
-    - Convert generated text to speech using the `XTTS_v2` model in `coqui_tts`.
-    - To change the voice, place your desired WAV audio file (approximately 15 seconds, clear voice, no background noise) into the `xtts_voices/` directory and name the file `input.wav`.
+    - Convert generated text to speech in real time while text is being generated.
+    - To change the voice, place your desired WAV audio file (approximately 10 seconds, clear voice, no background noise, 22050hz, mono) into the `data/reference_voices` directory and name the file `reference.wav`. Make sure you removed previous `reference.wav` and `reference.json` files.
+
+5. **Configuration**:
+    - You can customize various settings in the `config.json` file:
+    ```json
+    {
+        "version": "1.0.0",
+        "description": "Configuration file for AI app",
+
+        "stt": {
+            "model": "distil-small.en"
+        },
+
+        "tts": {
+            "reference_file": "data/reference_voices/reference.wav"
+        }
+    }
+    ```
+    - **stt.model**: Defines the model used for speech-to-text processing. You can change this to other available models such as `"base.en"` or `"distil-large-v3"` etc.
+    - **tts.reference_file**: Sets the path to the reference audio file for text-to-speech processing. Ensure the specified file exists and is correctly formatted.
 
 ## 🤝 Contributing
 
@@ -91,9 +110,9 @@ This project is licensed under the [Apache License 2.0](LICENSE).
 
 ## 🙏 Acknowledgements
 
-- [faster_whisper](https://github.com/guillaumekln/faster-whisper)
-- [ollama](https://github.com/ollama/ollama)
-- [coqui_tts](https://github.com/coqui-ai/TTS)
+- [RealtimeSTT](https://github.com/KoljaB/RealtimeSTT)
+- [Ollama](https://github.com/ollama/ollama)
+- [RealtimeTTS](https://github.com/KoljaB/RealtimeTTS)
 
 ## 📬 Contact
 
