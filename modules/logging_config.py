@@ -31,11 +31,11 @@ def configure_logger(name, log_dir = 'logs') -> logging.Logger:
     if not os.path.exists(log_dir):
         os.makedirs(log_dir, exist_ok=True)
     current_time = dt.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-    log_filename = f'{log_dir}/log_{current_time}.log'
+    log_filename = f'{log_dir}/log.log'
     file_fmt = '%(asctime)s | %(levelname)s | %(filename)s:%(lineno)d %(message)s'
-    logging.basicConfig(filename=log_filename, filemode='w', format=file_fmt)
+    logging.basicConfig(filename=log_filename, filemode='a', format=file_fmt)
 
-    fmt = '%(message)s'
+    fmt = '%(asctime)s [%(levelname)s] %(message)s'
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
     handler = logging.StreamHandler()

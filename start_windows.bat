@@ -10,7 +10,7 @@ if errorlevel 1 (
 )
 
 :: Define environment name
-set ENV_NAME=AsukaAI_env
+set ENV_NAME=asuka
 
 :: Deactivate any active conda environment
 call conda deactivate

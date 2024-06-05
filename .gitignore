@@ -162,3 +162,7 @@ cython_debug/
 
 # Cache
 cache/*
+
+# Models
+models/*
+!models/modelfile.md

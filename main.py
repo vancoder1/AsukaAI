@@ -1,71 +1,37 @@
-import ollama
+from RealtimeSTT import AudioToTextRecorder
+import warnings
 import ai_model
-from pygame import mixer
-import modules.pushtotalk_recorder as ptt
-import modules.fasterwhisper_stt as fw
-import modules.coqui_tts as coqui_tts
+import modules.tts_engine as tts_engine
 import modules.logging_config as lf
+import modules.json_handler as jh
 
+warnings.filterwarnings("ignore", category=UserWarning)
 logger = lf.configure_logger(__name__)
+json_handler = jh.JsonHandler('config.json')
 
-def voiceIO(AsukaAI):
-    mixer.init()
-    print('Initializing xtts...')
-    tts_engine = coqui_tts.CoquiTTS()
-    print('Initializing fasterwhisper...')
-    whisper = fw.FasterWhisper()
-    print('Initializing push-to-talk recorder...')
-    recorder = ptt.PushToTalkRecorder()
-    recorder.start()
+STT_MODEL = json_handler.get_setting('stt.model')
 
+
+if __name__ == '__main__':
+    print('Initializing Ollama...')
+    AsukaAI = ai_model.AIModel()
+    print('Initializing TTS...')
+    tts = tts_engine.TTS()
+    print('Initializing recorder...')
+    recorder = AudioToTextRecorder(model=STT_MODEL,
+                                   language='en',
+                                   compute_type='int8',
+                                   silero_use_onnx=True,
+                                   spinner=False,)
+      
     while True:
-        print(f'Press {recorder.key} to start recording and release to stop.')
-        recorder.wait_for_recording()
         try:
-            your_prompt = whisper.transcribe()
-        except (SystemExit):
-            logger.info('Exiting...')
-            break
-        except Exception as e:
-            logger.error(f"Error during transcription: {e}")
-            continue
-        
-        print(f'YOU: {your_prompt}')
-
-        try:
-            AsukaAI.stream = ollama.chat(
-                model=AsukaAI.model_name,
-                messages=[
-                    {
-                        'role': 'user', 'content': your_prompt
-                    }
-                ],
-                stream=True,
-            )
+            print('You may speak now...')
+            recorder.start()
+            print(f'\nYOU: {(user_text := recorder.stop().text())}\n', end="", flush=True)
             print('AI: ', end='')
-            AI_answer = ''
-            for chunk in AsukaAI.stream:
-                AI_answer += chunk['message']['content']
-                print(chunk['message']['content'], end='', flush=True)
+            tts.stream_inference(AsukaAI.yield_generate(user_text, True))
             print(end='\n')
         except Exception as e:
             logger.error(f"Error during AI response: {e}")
             continue
-        
-        mixer.music.stop()
-        mixer.music.unload()
-        
-        try:
-            tts_engine.process_audio(AI_answer)
-            mixer.music.load(tts_engine.output_file)
-            mixer.music.play()
-        except Exception as e:
-            logger.error(f"Error during TTS processing: {e}")
-
-
-if __name__ == '__main__':
-    try:
-        AsukaAI = ai_model.AIModel()
-        voiceIO(AsukaAI)
-    except Exception as e:
-        logger.error(f"Fatal error: {e}")

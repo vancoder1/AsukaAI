@@ -10,7 +10,7 @@ if errorlevel 1 (
 )
 
 :: Define environment name and Python version
-set ENV_NAME=AsukaAI_env
+set ENV_NAME=asuka
 set PYTHON_VERSION=3.11.9
 
 :: Deactivate any active conda environment

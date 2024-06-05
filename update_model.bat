@@ -1,5 +1,5 @@
 @echo off
 
-call ollama create Asuka -f models/modelfile.md
+call ollama create asuka -f models/modelfile.md
 
 pause

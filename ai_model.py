@@ -6,10 +6,13 @@ import modules.logging_config as lf
 logger = lf.configure_logger(__name__)
 
 class AIModel:
-    def __init__(self, model_name: str = 'Asuka'):
+    def __init__(self, 
+                 model_name: str = 'Asuka'):
         self.model_name = model_name
         self.stream = None
+
         self._initialize_model()
+       
 
     def _initialize_model(self):
         try:
@@ -32,3 +35,21 @@ class AIModel:
             exit(1)
         else:
             logger.info(f'Model {self.model_name} is successfully installed!')
+
+    def yield_generate(self, input_text: str, is_printed: bool = False):
+        try:
+            stream = ollama.chat(
+                model=self.model_name,
+                messages=[
+                    {
+                        'role': 'user', 'content': input_text
+                    }
+                ],
+                stream=True,
+            )
+            for chunk in stream:
+                if (is_printed):
+                    print(chunk['message']['content'], end='', flush=True)
+                yield chunk['message']['content']
+        except Exception as e:
+            logger.error(f"Error during AI response: {e}")
