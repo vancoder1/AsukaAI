@@ -22,7 +22,7 @@ if __name__ == '__main__':
                                    language='en',
                                    compute_type='int8',
                                    silero_use_onnx=True,
-                                   spinner=False,)
+                                   spinner=False)
       
     while True:
         try:
