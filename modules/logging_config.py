@@ -30,8 +30,8 @@ class CustomFormatter(logging.Formatter):
 def configure_logger(name, log_dir = 'logs') -> logging.Logger:
     if not os.path.exists(log_dir):
         os.makedirs(log_dir, exist_ok=True)
-    current_time = dt.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-    log_filename = f'{log_dir}/log.log'
+    current_time = dt.datetime.now().strftime('%Y-%m-%d')
+    log_filename = f'{log_dir}/log_{current_time}.log'
     file_fmt = '%(asctime)s | %(levelname)s | %(filename)s:%(lineno)d %(message)s'
     logging.basicConfig(filename=log_filename, filemode='a', format=file_fmt)
 
