@@ -1,8 +1,8 @@
 import json
 import logging
-import modules.logging_config as lf
+import modules.logging_config as lc
 
-logger = lf.configure_logger(__name__)
+logger = lc.configure_logger(__name__)
 
 class JsonHandler:
     def __init__(self, 

@@ -1,9 +1,9 @@
 import time
 from RealtimeTTS import TextToAudioStream, CoquiEngine
-import modules.logging_config as lf
+import modules.logging_config as lc
 import modules.json_handler as jh
 
-logger = lf.configure_logger(__name__)
+logger = lc.configure_logger(__name__)
 
 # Load configuration
 json_handler = jh.JsonHandler('config.json')
@@ -16,10 +16,10 @@ class TTS:
                                   full_sentences=True)
         self.stream = TextToAudioStream(self.engine)
 
-    def stream_inference(self, streamed_text: str) -> None:
+    def stream_inference(self, streamed_text: str) -> str:
         if self.stream.is_playing():
             self.stream.stop()
         self.stream.feed(streamed_text)
         self.stream.play_async()
         while self.stream.is_playing():
-            time.sleep(0.1)  
+            time.sleep(0.1)
