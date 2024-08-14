@@ -163,6 +163,8 @@ cython_debug/
 # Cache
 cache/*
 
+# Chats
+data/chats/*
+
 # Models
 models/*
-!models/modelfile.md

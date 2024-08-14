@@ -65,7 +65,7 @@ if defined CUDA_VERSION (
     call pip install torch torchvision torchaudio
 )
 
-call ollama create Asuka -f models/modelfile.md
+call ollama pull llama3
 
 :: Run main.py
 if exist main.py (
