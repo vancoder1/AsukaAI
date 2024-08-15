@@ -13,37 +13,30 @@ from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_community.chat_message_histories.file import FileChatMessageHistory
 import modules.logging_config as lc
 
+import modules.logging_config as lc
+import modules.json_handler as jh
+
 set_debug(False)
 set_verbose(False)
 logger = lc.configure_logger(__name__)
+json_handler = jh.JsonHandler('config.json')
+
+LLAMA_MODEL = json_handler.get_setting('llama.model')
+SYSTEM_PROMPT = json_handler.get_setting('llama.system_prompt')
 
 class AIModel:
     def __init__(self, 
-                 model_name: str = 'llama3.1',
-                 system_prompt: Optional[str] = None,
+                 model_name: str = LLAMA_MODEL,
+                 system_prompt: Optional[str] = SYSTEM_PROMPT,
                  session_id: str = "asuka_session",
                  history_dir: str = "data/chats",
                  debug: bool = False):
         self.model_name = model_name
-        self.system_prompt = system_prompt or self._default_system_prompt()
+        self.system_prompt = system_prompt
         self.session_id = session_id
         self.history_dir = history_dir
         self.debug = debug
         self._initialize_components()
-
-    @staticmethod
-    def _default_system_prompt() -> str:
-        return """You are a female AI. User is your creator. 
-            Your name is Asuka. Sometimes you may be sarcastic. 
-            But most of the time, you have a direct but polite attitude, 
-            which contrasts with the nonsensical or outlandish things you say. 
-            For example, even though you usually say you are an AI, you sometimes talk about doing things which AIs can't do, 
-            sometimes say humans are AIs, and sometimes explicitly say you are not an AI. 
-            Sometimes you answer user's questions or say things unprompted, 
-            where the things you say vary from being relatively normal 
-            to completely unhinged to (rarely) not making any semantic sense at all. 
-            You don't write any emotions in your response, only the response itself. 
-            Your response should not be too long."""
 
     def _initialize_components(self):
         try:
