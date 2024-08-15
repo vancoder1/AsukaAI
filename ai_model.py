@@ -12,8 +12,6 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_community.chat_message_histories.file import FileChatMessageHistory
 import modules.logging_config as lc
-
-import modules.logging_config as lc
 import modules.json_handler as jh
 
 set_debug(False)
@@ -44,8 +42,8 @@ class AIModel:
             self.llm = ChatOllama(model=self.model_name)
             self.memory = self._initialize_memory()
             self.chain = self._initialize_chain()
-        except requests.exceptions.ConnectionError:
-            logger.error("Failed to connect to Ollama. Please ensure Ollama is running.")
+        except requests.exceptions.ConnectionError as e:
+            logger.error(f"Failed to connect to Ollama: {e}")
             raise
 
     def _check_ollama_connection(self):

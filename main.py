@@ -1,6 +1,7 @@
 import time
 import warnings
-from typing import Generator
+import logging
+from typing import Generator, NoReturn
 from contextlib import contextmanager
 
 from RealtimeSTT import AudioToTextRecorder
@@ -11,6 +12,7 @@ import modules.json_handler as jh
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
+logging.getLogger("langchain_core.callbacks.manager").setLevel(logging.ERROR)
 logger = lc.configure_logger(__name__)
 json_handler = jh.JsonHandler('config.json')
 
@@ -18,16 +20,20 @@ STT_MODEL = json_handler.get_setting('stt.model')
 
 class ConversationManager:
     def __init__(self):
-        print('Initializing AI Model...')
-        self.asuka_ai = ai_model.AIModel(debug=False)
-
-        print('Initializing TTS...')
-        self.tts = tts_engine.TTS()
-
-        print('Initializing recorder...')
+        self.asuka_ai = self._initialize_ai_model()
+        self.tts = self._initialize_tts()
         self.recorder = self._initialize_recorder()
 
+    def _initialize_ai_model(self):
+        logger.info('Initializing AI Model...')
+        return ai_model.AIModel(debug=False)
+
+    def _initialize_tts(self):
+        logger.info('Initializing TTS...')
+        return tts_engine.TTS()
+
     def _initialize_recorder(self) -> AudioToTextRecorder:
+        logger.info('Initializing recorder...')
         return AudioToTextRecorder(
             model=STT_MODEL,
             language='en',
@@ -57,8 +63,8 @@ class ConversationManager:
             if input_text:
                 self.process_input(input_text)
 
-def main():
-    print('Initializing Conversation Manager...')
+def main() -> NoReturn:
+    logger.info('Initializing Conversation Manager...')
     manager = ConversationManager()
 
     while True:
@@ -67,7 +73,7 @@ def main():
             with manager.recording_session():
                 time.sleep(0.1)  # Add a small delay to prevent rapid looping
         except KeyboardInterrupt:
-            print("\nExiting the program...")
+            logger.info("Exiting the program...")
             break
         except Exception as e:
             logger.error(f"Error during conversation: {e}")

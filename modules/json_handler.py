@@ -1,58 +1,75 @@
 import json
-import logging
-import modules.logging_config as lc
-
-logger = lc.configure_logger(__name__)
+import os
+from typing import Any, Dict, Optional
+from functools import wraps
 
 class JsonHandler:
-    def __init__(self, 
-                 config_file: str = 'config.json'):
+    def __init__(self, config_file: str = 'config.json'):
         self.config_file = config_file
-        self.config = self.load_config()
+        self.config: Dict[str, Any] = self.load_config()
 
-    def load_config(self):
+    @staticmethod
+    def config_file_exists(func):
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            if not os.path.exists(self.config_file):
+                raise FileNotFoundError(f"Configuration file '{self.config_file}' not found.")
+            return func(self, *args, **kwargs)
+        return wrapper
+
+    def load_config(self) -> Dict[str, Any]:
         try:
+            if not os.path.exists(self.config_file):
+                return {}
             with open(self.config_file, 'r') as file:
-                config = json.load(file)
-                return config
-        except FileNotFoundError:
-            logger.warning("Configuration file not found, initializing with an empty configuration")
-            return {}
+                return json.load(file)
         except json.JSONDecodeError as e:
-            logger.error(f"Error decoding JSON: {e}")
-            return {}
+            raise ValueError(f"Error decoding JSON in '{self.config_file}': {e}")
 
-    def save_config(self):
-        try:
-            with open(self.config_file, 'w') as file:
-                json.dump(self.config, file, indent=4)
-        except Exception as e:
-            logger.error(f"Error saving configuration: {e}")
+    @config_file_exists
+    def save_config(self) -> None:
+        with open(self.config_file, 'w') as file:
+            json.dump(self.config, file, indent=4)
 
-    def get_setting(self, key: str, default=None):
-        try:
-            keys = key.split('.')
-            value = self.config
-            for k in keys:
-                if isinstance(value, dict):
-                    value = value.get(k, default)
-                else:
+    def get_setting(self, key: str, default: Any = None) -> Any:
+        keys = key.split('.')
+        value = self.config
+        for k in keys:
+            if isinstance(value, dict):
+                value = value.get(k)
+                if value is None:
                     return default
-            return value
-        except Exception as e:
-            logger.error(f"Error getting setting {key}: {e}")
-            return default
+            else:
+                return default
+        return value
 
-    def set_setting(self, key: str, value):
-        try:
-            keys = key.split('.')
-            d = self.config
-            for k in keys[:-1]:
-                if k not in d or not isinstance(d[k], dict):
-                    d[k] = {}
-                d = d[k]
-            d[keys[-1]] = value
+    def set_setting(self, key: str, value: Any) -> None:
+        keys = key.split('.')
+        d = self.config
+        for k in keys[:-1]:
+            d = d.setdefault(k, {})
+        d[keys[-1]] = value
+        self.save_config()
+
+    def delete_setting(self, key: str) -> None:
+        keys = key.split('.')
+        d = self.config
+        for k in keys[:-1]:
+            if k not in d:
+                return
+            d = d[k]
+        if keys[-1] in d:
+            del d[keys[-1]]
             self.save_config()
-            logger.info(f"Setting {key} updated to {value}")
-        except Exception as e:
-            logger.error(f"Error setting {key} to {value}: {e}")
+
+    @config_file_exists
+    def reset_config(self) -> None:
+        self.config = {}
+        self.save_config()
+
+    def get_all_settings(self) -> Dict[str, Any]:
+        return self.config.copy()
+
+    def update_settings(self, new_settings: Dict[str, Any]) -> None:
+        self.config.update(new_settings)
+        self.save_config()
