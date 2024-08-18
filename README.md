@@ -12,6 +12,7 @@ AsukaAI is your personal offline AI companion, ensuring privacy while offering p
 - **Modular Design**: Each component (STT, text generation, TTS) can be independently configured and customized.
 - **User-friendly**: Easy to set up and use with straightforward installation and configuration.
 - **Real-time processing**: Speech-to-text and text-to-speech are performed in real-time, enabling almost seamless interaction with AI.
+- **Long-term memory**: AI remembers and recalls information across sessions, enabling personalized and context-aware interactions, all while keeping data stored locally.
 
 ## 🖥️ System Requirements
 
