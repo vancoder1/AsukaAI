@@ -53,28 +53,27 @@ if exist "%~dp0requirements.txt" (
 
 :: CUDA Detection and PyTorch Installation
 echo Checking NVIDIA CUDA compatibility...
-set "CUDA_VERSION="
-nvcc --version 2>nul | find "release" >nul && (
-    for /f "tokens=2 delims=," %%v in ('nvcc --version ^| find "release"') do (
-        set "CUDA_VERSION=%%v"
-    )
+set CUDA_VERSION=
+for /f "tokens=2 delims==" %%i in ('wmic path win32_VideoController get DriverVersion /value') do (
+    set "CUDA_VERSION=%%i"
+    goto check_cuda
 )
 
+:check_cuda
 if defined CUDA_VERSION (
-    echo Detected CUDA %CUDA_VERSION%
-    if "%CUDA_VERSION:~1,4%" geq "12.1" (
-        echo Installing PyTorch with CUDA 12.1 support...
-        pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-    ) else if "%CUDA_VERSION:~1,4%" geq "11.8" (
-        echo Installing PyTorch with CUDA 11.8 support...
-        pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+    if %CUDA_VERSION% geq 12.3 (
+        echo CUDA version detected: %CUDA_VERSION%. Installing PyTorch for CUDA 12.3.
+        call pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+    ) else if %CUDA_VERSION% geq 11.8 (
+        echo CUDA version detected: %CUDA_VERSION%. Installing PyTorch for CUDA 11.8.
+        call pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
     ) else (
-        echo Installing CPU version of PyTorch...
-        pip install torch torchvision torchaudio
+        echo CUDA version detected: %CUDA_VERSION%. Installing CPU version of PyTorch.
+        call pip install torch torchvision torchaudio
     )
 ) else (
-    echo No NVIDIA CUDA detected. Installing CPU version...
-    pip install torch torchvision torchaudio
+    echo No CUDA version detected. Installing CPU version of PyTorch.
+    call pip install torch torchvision torchaudio
 )
 
 :: Verify critical dependencies
