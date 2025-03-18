@@ -12,6 +12,8 @@ import modules.json_handler as jh
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
 logging.getLogger("langchain_core.callbacks.manager").setLevel(logging.ERROR)
 logger = lc.configure_logger(__name__)
 json_handler = jh.JsonHandler('config.json')

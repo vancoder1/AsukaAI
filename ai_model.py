@@ -1,5 +1,6 @@
 import os
 from typing import Generator, Optional
+import warnings
 import ollama
 import httpcore
 import httpx
@@ -14,6 +15,10 @@ from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_community.chat_message_histories.file import FileChatMessageHistory
 import modules.logging_config as lc
 import modules.json_handler as jh
+
+warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 set_debug(False)
 set_verbose(False)

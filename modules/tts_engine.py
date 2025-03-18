@@ -1,7 +1,12 @@
 import time
+import warnings
 from RealtimeTTS import TextToAudioStream, CoquiEngine
 import modules.logging_config as lc
 import modules.json_handler as jh
+
+warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 logger = lc.configure_logger(__name__)
 
