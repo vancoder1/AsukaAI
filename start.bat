@@ -43,7 +43,7 @@ python -c "import torch; print('GPU available:', torch.cuda.is_available())"
 
 :: Launch Application
 echo Starting Asuka...
-python "%~dp0main.py" %*
+python "%~dp0src/AsukaAI/main.py" %*
 if %errorlevel% neq 0 (
     echo [ERROR] Application crashed with code %errorlevel%
     echo [HELP] Check requirements and environment setup

@@ -17,9 +17,10 @@ class JsonHandler:
             return func(self, *args, **kwargs)
         return wrapper
 
-    def load_config(self) -> Dict[str, Any]:
+    def load_config(self) -> dict[str, Any]: # Use lowercase dict for modern type hinting
         try:
             if not os.path.exists(self.config_file):
+                # Return empty dict if file doesn't exist, allowing optional config
                 return {}
             with open(self.config_file, 'r') as file:
                 return json.load(file)
@@ -67,9 +68,9 @@ class JsonHandler:
         self.config = {}
         self.save_config()
 
-    def get_all_settings(self) -> Dict[str, Any]:
+    def get_all_settings(self) -> dict[str, Any]: # Use lowercase dict
         return self.config.copy()
 
-    def update_settings(self, new_settings: Dict[str, Any]) -> None:
+    def update_settings(self, new_settings: dict[str, Any]) -> None: # Use lowercase dict
         self.config.update(new_settings)
         self.save_config()

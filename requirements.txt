@@ -62,6 +62,7 @@ Jinja2==3.1.4
 joblib==1.4.2
 jsonlines==1.2.0
 jsonpatch==1.33
+keyboard
 jsonpointer==3.0.0
 kiwisolver==1.4.5
 langchain==0.2.13

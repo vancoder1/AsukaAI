@@ -159,6 +159,7 @@ cython_debug/
 # IDE directories
 /.idea
 /.vscode
+/.roo
 
 # Cache
 cache/*

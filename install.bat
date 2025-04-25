@@ -51,29 +51,34 @@ if exist "%~dp0requirements.txt" (
     goto end
 )
 
-:: CUDA Detection and PyTorch Installation
-echo Checking NVIDIA CUDA compatibility...
-set CUDA_VERSION=
-for /f "tokens=2 delims==" %%i in ('wmic path win32_VideoController get DriverVersion /value') do (
-    set "CUDA_VERSION=%%i"
-    goto check_cuda
-)
+:: PyTorch Installation Choice
+echo Select PyTorch version to install:
+echo 1. CUDA 12.3 (Requires compatible NVIDIA GPU and drivers)
+echo 2. CUDA 11.8 (Requires compatible NVIDIA GPU and drivers)
+echo 3. CPU Only
+set /p TORCH_CHOICE="Enter choice (1, 2, or 3): "
 
-:check_cuda
-if defined CUDA_VERSION (
-    if %CUDA_VERSION% geq 12.3 (
-        echo CUDA version detected: %CUDA_VERSION%. Installing PyTorch for CUDA 12.3.
-        call pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
-    ) else if %CUDA_VERSION% geq 11.8 (
-        echo CUDA version detected: %CUDA_VERSION%. Installing PyTorch for CUDA 11.8.
-        call pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-    ) else (
-        echo CUDA version detected: %CUDA_VERSION%. Installing CPU version of PyTorch.
-        call pip install torch torchvision torchaudio
+if "%TORCH_CHOICE%"=="1" (
+    echo Installing PyTorch for CUDA 12.3...
+    call pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 || (
+        echo [ERROR] PyTorch CUDA 12.3 installation failed
+        goto end
+    )
+) else if "%TORCH_CHOICE%"=="2" (
+    echo Installing PyTorch for CUDA 11.8...
+    call pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118 || (
+        echo [ERROR] PyTorch CUDA 11.8 installation failed
+        goto end
+    )
+) else if "%TORCH_CHOICE%"=="3" (
+    echo Installing CPU version of PyTorch...
+    call pip install torch torchvision torchaudio || (
+        echo [ERROR] PyTorch CPU installation failed
+        goto end
     )
 ) else (
-    echo No CUDA version detected. Installing CPU version of PyTorch.
-    call pip install torch torchvision torchaudio
+    echo Invalid choice. Please run the installer again.
+    goto end
 )
 
 :: Verify critical dependencies
