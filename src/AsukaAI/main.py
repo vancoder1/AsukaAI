@@ -5,8 +5,7 @@ from typing import NoReturn
 import signal # For graceful shutdown
 import sys # For sys.exit
 
-# Use relative imports for modules within the AsukaAI package
-# Ensure PushToTalkSTT is correctly located at this path
+# Imports for modules within the AsukaAI package
 from audio.stt_engine import PushToTalkSTT
 import ai_model
 from audio import tts_engine
@@ -25,9 +24,6 @@ logging.getLogger("httpx").setLevel(logging.WARNING) # Example: Quieten httpx lo
 
 # --- Setup Logger ---
 logger = lc.configure_logger(__name__)
-
-# --- Configuration (Optional: Could be loaded within ConversationManager if preferred) ---
-# Config is now loaded within individual modules (STT, TTS, etc.)
 
 # --- Conversation Manager ---
 class ConversationManager:
@@ -162,8 +158,7 @@ def main() -> NoReturn:
         while True:
             try:
                 # Wait for PTT press/release and get transcription
-                # *** THIS IS THE KEY CHANGE: Use get_transcription ***
-                input_text = manager.stt.get_transcription(timeout=None) # Wait indefinitely for result
+                input_text = manager.stt.get_transcription(timeout=None) # Wait for result
 
                 # Process the input if it's valid and not an STT error
                 if input_text and not input_text.startswith("[ERROR"):
@@ -217,10 +212,6 @@ def main() -> NoReturn:
         # Explicit exit call might be needed depending on lingering non-daemon threads
         # sys.exit(0) # Exiting via signal handler or error code above is preferred
 
-
 if __name__ == '__main__':
-    # Ensure the script is run as a module if using relative imports requires it
-    # Example: python -m src.AsukaAI.main
-    # If running directly (python src/AsukaAI/main.py), adjust sys.path or use absolute imports if needed.
     logger.info("Application starting...")
     main()

@@ -275,37 +275,3 @@ class AIModel:
                   logger.debug("Streaming finished.")
                   # Log memory state after streaming if needed
                   # logger.debug(f"Memory state after stream: {self.memory.load_memory_variables({})}")
-
-    # yield_generate removed, use stream directly
-
-# Example Usage (Optional)
-if __name__ == '__main__':
-    lc.configure_logger(__name__, log_level=logging.DEBUG) # Enable debug for testing
-    try:
-        ai = AIModel(debug=True) # Enable debug mode for detailed Langchain logs
-        print("AI Model Initialized.")
-        print("Enter your message (or 'quit' to exit):")
-
-        while True:
-            user_input = input("YOU: ")
-            if user_input.lower() == 'quit':
-                break
-            if not user_input.strip():
-                continue
-
-            print("AI: ", end="", flush=True)
-            full_response = ""
-            for chunk in ai.stream(user_input):
-                print(chunk, end="", flush=True)
-                full_response += chunk
-            print() # Newline after response
-
-    except RuntimeError as e:
-        print(f"\nERROR: {e}")
-    except KeyboardInterrupt:
-        print("\nExiting...")
-    except Exception as e:
-        print(f"\nAn unexpected error occurred: {e}")
-        logger.exception("Unexpected error in AIModel example usage.")
-    finally:
-        print("AI Model example finished.")

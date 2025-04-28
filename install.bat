@@ -20,7 +20,7 @@ where conda >nul 2>nul || (
 
 :: Environment Setup
 set "ENV_NAME=asuka"
-set "PYTHON_VERSION=3.11.9"
+set "PYTHON_VERSION=3.12.9"
 
 :: Remove existing environment to ensure clean install
 call conda deactivate 2>nul
