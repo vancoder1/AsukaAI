@@ -1,104 +1,68 @@
+# ai_model.py
 import os
-from typing import Generator, Optional, Any
-import warnings
+from typing import Generator, Optional
+import logging
 import ollama
-import httpcore # Keep for potential ollama dependency
-import httpx   # Keep for potential ollama dependency
-# import requests # Likely unused directly, ollama client handles requests
+import httpcore
+import httpx
 from langchain.globals import set_debug, set_verbose
 from langchain_community.chat_models import ChatOllama
 from langchain.memory import ConversationSummaryBufferMemory
 from langchain_core.runnables.history import RunnableWithMessageHistory
-# Remove RunnablePassthrough as custom summarization is removed
-# from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_community.chat_message_histories import FileChatMessageHistory
 
-# Use relative imports
 from utils import logging_config as lc
 from utils import json_handler as jh
+from utils import constants
+from utils.config_loader import load_settings_from_json
 
-warnings.filterwarnings("ignore", category=FutureWarning)
-warnings.filterwarnings("ignore", category=UserWarning)
-warnings.filterwarnings("ignore", category=DeprecationWarning)
-warnings.filterwarnings("ignore", category=RuntimeWarning)
-
-# Configure Langchain verbosity (can be overridden by debug flag)
-set_debug(False)
-set_verbose(False)
+if constants.DEBUG_MODE:
+    set_debug(True)
+    set_verbose(True)
 
 logger = lc.configure_logger(__name__)
 
 # --- Configuration Loading ---
-CONFIG_FILE = 'config/config.json'
-DEFAULT_SETTINGS = {
-    'llama.model': 'llama3.2', # Example default model
-    'llama.system_prompt': 'You are a helpful AI assistant.',
-    'llama.history_dir': 'data/chats',
-    'llama.session_id': 'asuka_session',
-    'llama.max_token_limit': 8192, # Default token limit for memory summarization
+CONFIG_FILE = constants.CONFIG_FILE_PATH
+
+AI_MODEL_CONFIG_DEFS = {
+    'LLAMA_MODEL': ('llama.model', 'llama3.2'),
+    'SYSTEM_PROMPT': ('llama.system_prompt', 'You are a helpful AI assistant.'),
+    'HISTORY_DIR': ('llama.history_dir', 'data/chats'),
+    'SESSION_ID': ('llama.session_id', 'asuka_session'),
+    'MAX_TOKEN_LIMIT': ('llama.max_token_limit', 8192),
 }
 
-try:
-    json_handler = jh.JsonHandler(CONFIG_FILE)
-    LLAMA_MODEL = json_handler.get_setting('llama.model', DEFAULT_SETTINGS['llama.model'])
-    SYSTEM_PROMPT = json_handler.get_setting('llama.system_prompt', DEFAULT_SETTINGS['llama.system_prompt'])
-    HISTORY_DIR = json_handler.get_setting('llama.history_dir', DEFAULT_SETTINGS['llama.history_dir'])
-    SESSION_ID = json_handler.get_setting('llama.session_id', DEFAULT_SETTINGS['llama.session_id'])
-    MAX_TOKEN_LIMIT = json_handler.get_setting('llama.max_token_limit', DEFAULT_SETTINGS['llama.max_token_limit'])
-    logger.info(f"Loaded AI Model configuration from {CONFIG_FILE} (or defaults).")
-except FileNotFoundError:
-    logger.warning(f"{CONFIG_FILE} not found. Using default AI Model settings.")
-    LLAMA_MODEL = DEFAULT_SETTINGS['llama.model']
-    SYSTEM_PROMPT = DEFAULT_SETTINGS['llama.system_prompt']
-    HISTORY_DIR = DEFAULT_SETTINGS['llama.history_dir']
-    SESSION_ID = DEFAULT_SETTINGS['llama.session_id']
-    MAX_TOKEN_LIMIT = DEFAULT_SETTINGS['llama.max_token_limit']
-except Exception as e:
-    logger.error(f"Error reading {CONFIG_FILE} for AI Model settings: {e}. Using default AI Model settings.", exc_info=True)
-    LLAMA_MODEL = DEFAULT_SETTINGS['llama.model']
-    SYSTEM_PROMPT = DEFAULT_SETTINGS['llama.system_prompt']
-    HISTORY_DIR = DEFAULT_SETTINGS['llama.history_dir']
-    SESSION_ID = DEFAULT_SETTINGS['llama.session_id']
-    MAX_TOKEN_LIMIT = DEFAULT_SETTINGS['llama.max_token_limit']
+ai_json_handler = jh.JsonHandler(CONFIG_FILE)
+_config_values = load_settings_from_json(logger, ai_json_handler, AI_MODEL_CONFIG_DEFS, "AIModel")
+
+LLAMA_MODEL = _config_values['LLAMA_MODEL']
+SYSTEM_PROMPT = _config_values['SYSTEM_PROMPT']
+HISTORY_DIR = _config_values['HISTORY_DIR']
+SESSION_ID = _config_values['SESSION_ID']
+MAX_TOKEN_LIMIT = _config_values['MAX_TOKEN_LIMIT']
 
 
 class AIModel:
-    """
-    Manages the connection to an Ollama language model, conversation history,
-    and generation/streaming of responses.
-    """
     def __init__(self,
                  model_name: str = LLAMA_MODEL,
                  system_prompt: Optional[str] = SYSTEM_PROMPT,
                  session_id: str = SESSION_ID,
                  history_dir: str = HISTORY_DIR,
                  max_token_limit: int = MAX_TOKEN_LIMIT,
-                 debug: bool = False):
-        """
-        Initializes the AI Model components.
-
-        Args:
-            model_name (str): The name of the Ollama model to use.
-            system_prompt (Optional[str]): The system prompt for the AI.
-            session_id (str): Identifier for the conversation session history.
-            history_dir (str): Directory to store chat history files.
-            max_token_limit (int): Max token limit before ConversationSummaryBufferMemory summarizes.
-            debug (bool): Enable debug logging for Langchain components.
-        """
+                 debug: bool = constants.DEBUG_MODE): # Default to global DEBUG_MODE
         self.model_name = model_name
         self.system_prompt = system_prompt
         self.session_id = session_id
         self.history_dir = history_dir
         self.max_token_limit = max_token_limit
-        self.debug = debug
+        self.debug = debug # Instance-specific debug, defaults to global
 
         if self.debug:
-            set_debug(True)
-            set_verbose(True)
-            logger.setLevel(logging.DEBUG)
-            logger.info("Debug mode enabled for AIModel and Langchain.")
+            # This log will appear if self.debug is true, regardless of Langchain's global setting
+            logger.info(f"AIModel instance created with debug ON. (Global DEBUG_MODE: {constants.DEBUG_MODE}, Langchain set_debug: {str(logging.getLogger('langchain').level <= logging.DEBUG)})")
 
         self.llm = None
         self.memory = None
@@ -106,10 +70,9 @@ class AIModel:
         self._initialize_components()
 
     def _initialize_components(self):
-        """Initializes Ollama connection, memory, and the Langchain Runnable."""
         try:
-            logger.info(f"Initializing AI Model components for model '{self.model_name}'...")
-            self._check_ollama_connection() # Check connection and pull model if needed first
+            logger.info(f"Initializing AI Model components for model '{self.model_name}' (Instance debug: {self.debug})...")
+            self._check_ollama_connection()
             self.llm = ChatOllama(model=self.model_name)
             logger.info("ChatOllama initialized.")
             self.memory = self._initialize_memory()
@@ -119,21 +82,15 @@ class AIModel:
             logger.info("AI Model components initialized successfully.")
         except (ConnectionError, ollama.ResponseError, RuntimeError) as e:
             logger.error(f"Fatal: Failed to initialize AI Model components: {e}", exc_info=True)
-            # Re-raise critical errors to prevent application from starting incorrectly
-            raise RuntimeError("AI Model initialization failed. Check Ollama service and model availability.") from e
+            raise RuntimeError(f"AI Model initialization failed ({e}). Check Ollama service and model availability.") from e
         except Exception as e:
              logger.error(f"Fatal: An unexpected error occurred during AI Model initialization: {e}", exc_info=True)
-             raise RuntimeError("Unexpected error during AI Model initialization.") from e
-
+             raise RuntimeError(f"Unexpected error during AI Model initialization ({e}).") from e
 
     def _check_ollama_connection(self):
-        """Checks connection to Ollama and pulls the model if it's not available."""
         logger.info(f"Checking connection to Ollama and availability of model '{self.model_name}'...")
         try:
-            # Use ollama.list() or a lightweight command first if possible
-            # ollama.list() # Example check
-            # If list doesn't error, try a small generation
-            ollama.generate(model=self.model_name, prompt=".") # Minimal prompt
+            ollama.generate(model=self.model_name, prompt=".") 
             logger.info(f"Ollama connection successful and model '{self.model_name}' is available.")
         except ollama.ResponseError as re:
             logger.warning(f'Ollama ResponseError: {re.error} (Status: {re.status_code})')
@@ -141,7 +98,6 @@ class AIModel:
                 logger.info(f"Model '{self.model_name}' not found locally. Attempting to pull...")
                 self._pull_model()
             else:
-                # Re-raise other response errors (e.g., authentication, server issues)
                 raise RuntimeError(f"Ollama API error: {re.error}") from re
         except (httpcore.ConnectError, httpx.ConnectError, ConnectionRefusedError) as ce:
             logger.error(f'Ollama Connection Error: {ce}')
@@ -151,20 +107,16 @@ class AIModel:
              raise RuntimeError("Unexpected error checking Ollama connection.") from e
 
     def _pull_model(self) -> None:
-        """Pulls the specified Ollama model."""
         logger.info(f"Pulling Ollama model '{self.model_name}'. This may take some time...")
         try:
-            # Stream the pull progress
             current_digest = ""
             for progress in ollama.pull(self.model_name, stream=True):
                 digest = progress.get("digest", "")
                 if digest != current_digest and digest != "":
-                    logger.info(f"Pulling layer {digest}...")
+                    if self.debug: logger.debug(f"Pulling layer {digest}...")
                     current_digest = digest
-
                 status = progress.get("status", "")
                 if status:
-                     # Basic progress update, avoid excessive logging
                      if "pulling" in status or "downloading" in status:
                           if progress.get("completed") and progress.get("total"):
                                 percent = round(progress['completed'] / progress['total'] * 100, 1)
@@ -172,14 +124,11 @@ class AIModel:
                           else:
                                 print(f"\rStatus: {status}...", end="")
                      else:
-                          print(f"\rStatus: {status}") # Print final status for layer/pull
-
-            print() # Newline after progress updates
+                          print(f"\rStatus: {status}") 
+            print() 
             logger.info(f"Model '{self.model_name}' pulled successfully.")
-            # Verify model availability after pull
             ollama.generate(model=self.model_name, prompt=".")
             logger.info(f"Model '{self.model_name}' confirmed available after pull.")
-
         except ollama.ResponseError as ep:
             logger.error(f'Error pulling model "{self.model_name}": {ep.error}')
             raise RuntimeError(f'Failed to pull Ollama model "{self.model_name}": {ep.error}') from ep
@@ -187,91 +136,74 @@ class AIModel:
             logger.error(f'Unexpected error pulling model "{self.model_name}": {e}', exc_info=True)
             raise RuntimeError(f'Unexpected error pulling Ollama model "{self.model_name}".') from e
 
-
     def _initialize_memory(self):
-        """Initializes the conversation memory with file-based history."""
         history_file_path = self._get_history_file_path(self.session_id)
         logger.info(f"Initializing conversation memory with history file: {history_file_path}")
-        logger.info(f"Memory summarization trigger token limit: {self.max_token_limit}")
-        file_history = FileChatMessageHistory(history_file_path)
-        # Ensure the directory exists for the history file
+        if self.debug:
+            logger.debug(f"Memory summarization trigger token limit: {self.max_token_limit}")
         os.makedirs(os.path.dirname(history_file_path), exist_ok=True)
-
+        file_history = FileChatMessageHistory(history_file_path)
+        
         return ConversationSummaryBufferMemory(
             llm=self.llm,
             chat_memory=file_history,
-            max_token_limit=self.max_token_limit, # Rely on this for summarization
+            max_token_limit=self.max_token_limit, 
             return_messages=True,
-            memory_key="history", # Ensure memory key matches placeholder name
-            input_key="input"     # Ensure input key matches placeholder name
+            memory_key="history", 
+            input_key="input"     
         )
 
     def _get_history_file_path(self, session_id: str) -> str:
-        """Constructs the full path for the chat history file."""
-        # Ensure the base history directory exists
         os.makedirs(self.history_dir, exist_ok=True)
         return os.path.join(self.history_dir, f"{session_id}.json")
 
     def _initialize_chain(self):
-        """Initializes the Langchain Runnable sequence."""
-        logger.info("Setting up Langchain prompt and runnable...")
+        if self.debug: logger.debug("Setting up Langchain prompt and runnable...")
         prompt = ChatPromptTemplate.from_messages([
             ("system", self.system_prompt),
-            MessagesPlaceholder(variable_name="history"), # Matches memory_key
-            ("human", "{input}"), # Matches input_key
+            MessagesPlaceholder(variable_name="history"), 
+            ("human", "{input}"), 
         ])
-
-        # Basic chain: prompt -> llm -> output parser
         base_chain = prompt | self.llm | StrOutputParser()
-
-        # Wrap the base chain with message history management
         chain_with_history = RunnableWithMessageHistory(
             base_chain,
-            # Use the already initialized memory object's chat_memory
-            lambda session_id: self.memory.chat_memory,
-            input_messages_key="input", # Key for user input in invoke/stream
-            history_messages_key="history", # Key for history messages in the prompt
+            lambda session_id_param: self.memory.chat_memory,
+            input_messages_key="input", 
+            history_messages_key="history", 
         )
-        logger.info("Langchain runnable setup complete.")
+        if self.debug: logger.debug("Langchain runnable setup complete.")
         return chain_with_history
 
-    # Removed custom summarize_messages method - ConversationSummaryBufferMemory handles it.
-
-    def generate(self, input_text: str) -> str:
-        """Generates a single response from the AI."""
-        if not self.chain_with_message_history:
-             logger.error("Cannot generate response: AI chain not initialized.")
-             return "[ERROR: AI Chain not ready]"
-        logger.debug(f"Generating response for input: '{input_text[:50]}...'")
-        response = self.chain_with_message_history.invoke(
-            {"input": input_text},
-            config={"configurable": {"session_id": self.session_id}}
-        )
-        if self.debug:
-             logger.debug(f"Generated response: '{response[:100]}...'")
-             # Log memory state if needed for debugging
-             # logger.debug(f"Memory state: {self.memory.load_memory_variables({})}")
-        return response
-
     def stream(self, input_text: str) -> Generator[str, None, None]:
-        """Streams the AI's response chunk by chunk."""
         if not self.chain_with_message_history:
              logger.error("Cannot stream response: AI chain not initialized.")
-             yield "[ERROR: AI Chain not ready]"
-             return # Stop the generator
+             yield f"{constants.ERROR_MESSAGE_PREFIX} AI Chain not ready"
+             return 
 
-        logger.debug(f"Streaming response for input: '{input_text[:50]}...'")
+        log_prefix = f"AIModel {'(debug ON) ' if self.debug else ''}"
+        logger.info(f"{log_prefix}Streaming response for input: '{input_text[:50]}...'")
         try:
-            for chunk in self.chain_with_message_history.stream(
+            for chunk_idx, chunk_content in enumerate(self.chain_with_message_history.stream(
                 {"input": input_text},
-                config={"configurable": {"session_id": self.session_id}}
-            ):
-                yield chunk
+                config={"configurable": {"session_id": self.session_id}} # Pass session_id for history
+            )):
+                # Assuming chunk_content is the actual string chunk
+                if self.debug and chunk_idx < 5: 
+                    logger.debug(f"Stream chunk {chunk_idx}: '{str(chunk_content)[:50]}...'")
+                yield str(chunk_content) # Ensure it's a string
         except Exception as e:
              logger.error(f"Error during AI model streaming: {e}", exc_info=True)
-             yield "[ERROR: Streaming failed]"
+             yield f"{constants.ERROR_MESSAGE_PREFIX} Streaming failed due to an internal error."
         finally:
              if self.debug:
-                  logger.debug("Streaming finished.")
-                  # Log memory state after streaming if needed
-                  # logger.debug(f"Memory state after stream: {self.memory.load_memory_variables({})}")
+                  logger.debug(f"{log_prefix}Streaming finished.")
+
+    def close(self):
+        # Add any explicit cleanup for Ollama, Langchain resources if needed
+        logger.info("AIModel close called (placeholder - Langchain/Ollama manage most resources).")
+        if self.memory and hasattr(self.memory, 'clear'):
+             if self.debug: logger.debug("Clearing AI conversation memory.")
+             try:
+                self.memory.clear() # Example if memory has a clear method
+             except Exception as e:
+                logger.warning(f"Error clearing AI memory: {e}", exc_info=self.debug)

@@ -1,36 +1,30 @@
 import json
 import os
-from typing import Any, Dict, Optional
-from functools import wraps
+from typing import Any, Dict 
 
 class JsonHandler:
-    def __init__(self, config_file: str = 'config.json'):
+    def __init__(self, config_file: str = 'config.json'): # Default path
         self.config_file = config_file
-        self.config: Dict[str, Any] = self.load_config()
+        self.config: Dict[str, Any] = self._load_config_internal()
 
-    @staticmethod
-    def config_file_exists(func):
-        @wraps(func)
-        def wrapper(self, *args, **kwargs):
-            if not os.path.exists(self.config_file):
-                raise FileNotFoundError(f"Configuration file '{self.config_file}' not found.")
-            return func(self, *args, **kwargs)
-        return wrapper
-
-    def load_config(self) -> dict[str, Any]: # Use lowercase dict for modern type hinting
+    def _load_config_internal(self) -> Dict[str, Any]:
         try:
             if not os.path.exists(self.config_file):
-                # Return empty dict if file doesn't exist, allowing optional config
                 return {}
-            with open(self.config_file, 'r') as file:
+            with open(self.config_file, 'r', encoding='utf-8') as file:
                 return json.load(file)
         except json.JSONDecodeError as e:
-            raise ValueError(f"Error decoding JSON in '{self.config_file}': {e}")
+            raise ValueError(f"Error decoding JSON in '{self.config_file}': {e}") from e
+        except Exception as e:
+            raise IOError(f"Could not load configuration file '{self.config_file}': {e}") from e
 
-    @config_file_exists
     def save_config(self) -> None:
-        with open(self.config_file, 'w') as file:
-            json.dump(self.config, file, indent=4)
+        try:
+            os.makedirs(os.path.dirname(self.config_file) or '.', exist_ok=True)
+            with open(self.config_file, 'w', encoding='utf-8') as file:
+                json.dump(self.config, file, indent=4)
+        except IOError as e:
+            raise
 
     def get_setting(self, key: str, default: Any = None) -> Any:
         keys = key.split('.')
@@ -49,28 +43,30 @@ class JsonHandler:
         d = self.config
         for k in keys[:-1]:
             d = d.setdefault(k, {})
+            if not isinstance(d, dict):
+                raise TypeError(f"Configuration structure error: expected a dictionary at path leading to '{k}'")
         d[keys[-1]] = value
         self.save_config()
 
     def delete_setting(self, key: str) -> None:
         keys = key.split('.')
         d = self.config
-        for k in keys[:-1]:
-            if k not in d:
+        for i, k_segment in enumerate(keys[:-1]):
+            if isinstance(d, dict) and k_segment in d:
+                d = d[k_segment]
+            else:
                 return
-            d = d[k]
-        if keys[-1] in d:
+        if isinstance(d, dict) and keys[-1] in d:
             del d[keys[-1]]
             self.save_config()
 
-    @config_file_exists
     def reset_config(self) -> None:
         self.config = {}
         self.save_config()
 
-    def get_all_settings(self) -> dict[str, Any]: # Use lowercase dict
+    def get_all_settings(self) -> Dict[str, Any]:
         return self.config.copy()
 
-    def update_settings(self, new_settings: dict[str, Any]) -> None: # Use lowercase dict
+    def update_settings(self, new_settings: Dict[str, Any]) -> None:
         self.config.update(new_settings)
         self.save_config()
