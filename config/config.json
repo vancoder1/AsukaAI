@@ -13,7 +13,8 @@
 
     "tts": {
         "lang_code": "a",
-        "voice": "af_heart"
+        "voice": "af_heart",
+        "device": "cuda"
     },
 
     "llama": {

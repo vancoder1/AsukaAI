@@ -26,6 +26,7 @@ CONFIG_FILE = constants.CONFIG_FILE_PATH
 TTS_CONFIG_DEFS = {
     'LANG_CODE': ('tts.lang_code', 'a'),
     'VOICE': ('tts.voice', 'af_heart'),
+    'DEVICE': ('tts.device', 'cpu'),
 }
 
 tts_json_handler = jh.JsonHandler(CONFIG_FILE)
@@ -33,6 +34,7 @@ _config_values = load_settings_from_json(logger, tts_json_handler, TTS_CONFIG_DE
 
 LANG_CODE = _config_values['LANG_CODE']
 VOICE = _config_values['VOICE']
+DEVICE = _config_values['DEVICE']
 
 # --- Constants ---
 SAMPLE_RATE = 24000
